@@ -94,10 +94,10 @@ public class MemberDAO {
 				
 				list.add(vo);
 			}
+			
 			rs.close();
 			pstmt.close();
 			con.close();
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -147,7 +147,6 @@ public class MemberDAO {
 			System.out.println("addMember(): "+query);
 			
 			pstmt = con.prepareStatement(query);
-			
 			pstmt.executeUpdate();
 
 			pstmt.close();
@@ -165,7 +164,6 @@ public class MemberDAO {
 			System.out.println("preparedStatement: "+query);
 			
 			pstmt = con.prepareStatement(query);
-
 			pstmt.executeUpdate();
 			
 			pstmt.close();
@@ -207,6 +205,7 @@ public class MemberDAO {
 		try {
 			con = dataFactory.getConnection();
 			
+			if (id != null || id != "") {				
 			String query = "select if(count(*)=1, 'true', 'false') as result from t_shopping_member"
 					+ " where MEMBER_ID = '"+id+"' and MEMBER_PW = '"+pw+"';";
 			
@@ -220,6 +219,7 @@ public class MemberDAO {
 
 			rs.close();
 			pstmt.close();
+			}
 			con.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -231,17 +231,14 @@ public class MemberDAO {
 	public void mainChart(HttpServletResponse response) throws IOException {
 		PrintWriter out = response.getWriter();
 		
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
-		String query = "SELECT DATE(JOINDATE) AS 'DATE', COUNT(*) AS 'COUNT' FROM t_shopping_member GROUP BY DATE(JOINDATE) ORDER BY DATE(JOINDATE);";
-
 		try {
 			con = dataFactory.getConnection();
 
-			pstmt = con.prepareStatement(query);
+			String query = "SELECT DATE(JOINDATE) AS 'DATE', COUNT(*) AS 'COUNT' FROM t_shopping_member GROUP BY DATE(JOINDATE) ORDER BY DATE(JOINDATE);";
+			
+			PreparedStatement pstmt = con.prepareStatement(query);
 
-			rs = pstmt.executeQuery();
+			ResultSet rs = pstmt.executeQuery();
 
 			String g_labels = "'";
 			String g_data = "";
@@ -255,27 +252,26 @@ public class MemberDAO {
 				g_data = g_data + COUNT + ",";
 			}
 			
-			out.print("<script>\r\n"
-					+ "  const ctx = document.getElementById('myChart');\r\n"
-					+ "\r\n"
-					+ "  new Chart(ctx, {\r\n"
-					+ "    type: 'line',\r\n"
-					+ "    data: {    	\r\n"
-					+ "      labels: ["+g_labels.substring(0, g_labels.length() - 2)+"],\r\n"
-					+ "      datasets: [{\r\n"
-					+ "        label: '일별 가입자 수',\r\n"
-					+ "        data: ["+g_data.substring(0, g_data.length() - 1)+"],\r\n"
-					+ "        borderWidth: 1,\r\n"
-					+ "      }]\r\n"
-					+ "    },\r\n"
-					+ "    options: {\r\n"
-					+ "      scales: {\r\n"
-					+ "        y: {\r\n"
-					+ "          beginAtZero: true\r\n"
-					+ "        }\r\n"
-					+ "      }\r\n"
-					+ "    }\r\n"
-					+ "  });\r\n"
+			out.print("\r\n<script type=\"text/javascript\">"
+					+ "  const ctx = document.getElementById('myChart');"
+					+ "  new Chart(ctx, {"
+					+ "    type: 'line',"
+					+ "    data: {    	"
+					+ "      labels: ["+g_labels.substring(0, g_labels.length() - 2)+"],"
+					+ "      datasets: [{"
+					+ "        label: '일별 가입자 수',"
+					+ "        data: ["+g_data.substring(0, g_data.length() - 1)+"],"
+					+ "        borderWidth: 1,"
+					+ "      }]"
+					+ "    },"
+					+ "    options: {"
+					+ "      scales: {"
+					+ "        y: {"
+					+ "          beginAtZero: true"
+					+ "        }"
+					+ "      }"
+					+ "    }"
+					+ "  });"
 					+ "</script>");
 			
 			rs.close();

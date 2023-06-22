@@ -1,9 +1,9 @@
 package servlet;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.io.IOException;
-import java.io.PrintWriter;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,6 +15,8 @@ import javax.servlet.http.HttpSession;
 @WebServlet("/logout")
 public class LogoutServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	ServletContext context;
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doHandle(request, response);
@@ -25,8 +27,19 @@ public class LogoutServlet extends HttpServlet {
 	}
 
 	protected void doHandle(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
-		out.print("로그아웃");
+			throws ServletException, IOException {		
+		context = getServletContext();
+		HttpSession session = request.getSession();
+		String userID = request.getParameter("userID");
+		session.invalidate();
+		
+		List<String> userList = (ArrayList<String>) context.getAttribute("userList");
+		userList.remove(userID);
+		context.removeAttribute("userList");
+		context.setAttribute("userList", userList);
+		
+		System.out.print(userID + " 로그아웃");
+		
+		response.sendRedirect("./");
 	}
 }

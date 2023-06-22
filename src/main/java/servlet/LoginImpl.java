@@ -15,13 +15,13 @@ public class LoginImpl implements HttpSessionBindingListener{
     
     @Override
     public void valueBound(HttpSessionBindingEvent arg0) {
-    	System.out.println("사용자 접속");
+    	System.out.println(userID + " 사용자 접속");
     	++total_user;
     }
     
     @Override
     public void valueUnbound(HttpSessionBindingEvent arg0) {
-    	System.out.println("사용자 접속 해제");
+    	System.out.println(userID + " 사용자 접속 해제");
     	total_user--;
     }
 

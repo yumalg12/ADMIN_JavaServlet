@@ -36,10 +36,10 @@ public class ShowMember extends HttpServlet {
 				out.print("<a href='javascript:history.back(0)'>뒤로가기</a>");
 				out.print("</body></html");
 			} else {
-				response.sendRedirect("login.html");
+				response.sendRedirect("./");
 			}
 		} else {
-			response.sendRedirect("login.html");
+			response.sendRedirect("./");
 		}
 	}
 
