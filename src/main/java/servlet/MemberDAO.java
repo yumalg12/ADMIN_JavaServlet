@@ -1,5 +1,7 @@
 package servlet;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,6 +10,8 @@ import java.util.List;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import java.util.ArrayList;
@@ -143,14 +147,142 @@ public class MemberDAO {
 			System.out.println("addMember(): "+query);
 			
 			pstmt = con.prepareStatement(query);
+			
 			pstmt.executeUpdate();
+
 			pstmt.close();
-			
-			
+			con.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void delMember(String userID) {
+		try {
+			con = dataFactory.getConnection();
+			
+			String query = "delete from t_shopping_member where MEMBER_ID = '"+userID+"';";
+			System.out.println("preparedStatement: "+query);
+			
+			pstmt = con.prepareStatement(query);
+
+			pstmt.executeUpdate();
+			
+			pstmt.close();
+			con.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
+	}
+	
+	public void registerForm(HttpServletResponse response) {
+		try {
+			con = dataFactory.getConnection();
+			
+			String query = "SELECT * FROM `t_dept` ORDER BY DEPTNO ASC;";
+			pstmt = con.prepareStatement(query);
+
+			ResultSet rs = pstmt.executeQuery();
+			PrintWriter out = response.getWriter();
+			// 결과를 출력
+			while (rs.next()) {
+				Integer deptno = rs.getInt("DEPTNO");
+				String dname = rs.getString("DNAME");
+				out.print("<option value=\""+deptno+"\">"+dname+"</option>");
+			}
+
+			rs.close();
+			pstmt.close();
+			con.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public boolean isExisted(MemberVO memberVO) {
+		boolean result = false;
+		String id = memberVO.getUserID();
+		String pw = memberVO.getUserPW();
+		try {
+			con = dataFactory.getConnection();
+			
+			String query = "select if(count(*)=1, 'true', 'false') as result from t_shopping_member"
+					+ " where MEMBER_ID = '"+id+"' and MEMBER_PW = '"+pw+"';";
+			
+			System.out.println("isExisted query: "+query);
+			
+			pstmt = con.prepareStatement(query);
+			ResultSet rs = pstmt.executeQuery();
+			rs.next();
+			
+			result = Boolean.parseBoolean(rs.getString("result"));
+
+			rs.close();
+			pstmt.close();
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	
+	public void mainChart(HttpServletResponse response) throws IOException {
+		PrintWriter out = response.getWriter();
 		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		String query = "SELECT DATE(JOINDATE) AS 'DATE', COUNT(*) AS 'COUNT' FROM t_shopping_member GROUP BY DATE(JOINDATE) ORDER BY DATE(JOINDATE);";
+
+		try {
+			con = dataFactory.getConnection();
+
+			pstmt = con.prepareStatement(query);
+
+			rs = pstmt.executeQuery();
+
+			String g_labels = "'";
+			String g_data = "";
+
+			// 결과
+			while (rs.next()) {
+				String DATE = rs.getString("DATE");
+				String COUNT = rs.getString("COUNT");
+
+				g_labels = g_labels + DATE + "','";
+				g_data = g_data + COUNT + ",";
+			}
+			
+			out.print("<script>\r\n"
+					+ "  const ctx = document.getElementById('myChart');\r\n"
+					+ "\r\n"
+					+ "  new Chart(ctx, {\r\n"
+					+ "    type: 'line',\r\n"
+					+ "    data: {    	\r\n"
+					+ "      labels: ["+g_labels.substring(0, g_labels.length() - 2)+"],\r\n"
+					+ "      datasets: [{\r\n"
+					+ "        label: '일별 가입자 수',\r\n"
+					+ "        data: ["+g_data.substring(0, g_data.length() - 1)+"],\r\n"
+					+ "        borderWidth: 1,\r\n"
+					+ "      }]\r\n"
+					+ "    },\r\n"
+					+ "    options: {\r\n"
+					+ "      scales: {\r\n"
+					+ "        y: {\r\n"
+					+ "          beginAtZero: true\r\n"
+					+ "        }\r\n"
+					+ "      }\r\n"
+					+ "    }\r\n"
+					+ "  });\r\n"
+					+ "</script>");
+			
+			rs.close();
+			pstmt.close();
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }

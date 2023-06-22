@@ -23,16 +23,14 @@ public class MemberServlet extends HttpServlet {
 	}
 	
 	private void doHandle(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.setCharacterEncoding("UTF-8");
-		response.setContentType("text/html; charset=UTF-8");
+		PrintWriter out = response.getWriter();
 
 		MemberDAO dao = new MemberDAO();
-		PrintWriter out = response.getWriter();
 		String command = request.getParameter("command");
 		
 		if (command != null && command.equals("addMember")) {
-			//가입 동작 추가
-			String _userID = request.getParameter("userID");
+			//가입 동작
+			String _userID = request.getParameter("userIDval");
 			String _userPW = request.getParameter("userPW");
 			String _userName = request.getParameter("userName");
 			String _dept = request.getParameter("dept");
@@ -40,19 +38,31 @@ public class MemberServlet extends HttpServlet {
 			String _tel1 = request.getParameter("tel1");
 			String _tel2 = request.getParameter("tel2");
 			String _tel3 = request.getParameter("tel3");
-			String _SMSYN = request.getParameter("SMSYN");
 			String _email1 = request.getParameter("email1");
 			String _email2 = request.getParameter("email2");
-			String _emailYN = request.getParameter("emailYN");
 			String _zipcode = request.getParameter("zipcode");
-			String _roadaddress = request.getParameter("roadaddress");
-			String _namujiaddress = request.getParameter("namujiaddress");
+			String _roadaddress = request.getParameter("roadAddress");
+			String _namujiaddress = request.getParameter("namujiAddress");
 			String _bYear = request.getParameter("bYear");
 			String _bMon = request.getParameter("bMon");
 			String _bDay = request.getParameter("bDay");
-			String _joinDate = request.getParameter("joinDate");
-			String _delYN = request.getParameter("delYN");
 			
+			//체크박스 값 지정
+			String _SMSYN = request.getParameter("SMSYN");
+			if (_SMSYN != null && _SMSYN.equals("on")) {
+				_SMSYN = "Y";
+			} else {
+				_SMSYN = "N";				
+			}
+			
+			String _emailYN = request.getParameter("emailYN");
+			if (_emailYN != null && _emailYN == "on") {
+				_emailYN = "Y";
+			} else {
+				_emailYN = "N";				
+			}
+			
+			//setter 호출
 			MemberVO vo = new MemberVO();
 			
 			vo.setUserID(_userID);
@@ -73,17 +83,15 @@ public class MemberServlet extends HttpServlet {
 			vo.setbYear(_bYear);
 			vo.setbMon(_bMon);
 			vo.setbDay(_bDay);
-			vo.setJoinDate(_joinDate);
-			vo.setDelYN(_delYN);
 			
 			dao.addMember(vo);
 
 		} else if (command != null && command.equals("delMember")) {
-			// 지우는 동작 추가해야 됨
-			MemberVO vo = new MemberVO();
-
-			vo.setDelYN("Y");
+			// 지우는 동작
+			String _userID = request.getParameter("userID");
+			dao.delMember(_userID);
 		}
+		
 		
 		//결과 표시부 시작
 		List<MemberVO> list = dao.listMembers();
@@ -91,8 +99,10 @@ public class MemberServlet extends HttpServlet {
 		out.print("<html>"
 				+ "<link href=\"./css/bootstrap.css\" rel=\"stylesheet\">\r\n"
 				+ "<link rel=\"stylesheet\" href=\"./css/main.css\">"
-				+ "<body><h1>Register</h1>");
-		out.print("<table border=1 cellspacing=0><tr aligh='center' bgcolor='lightgreen'>");
+				+ "<body><div class=\"contents\">"
+				+ "<h1>Member List</h1>"
+				+ "<a href=\"/ADMIN_JavaServlet/register\">새 회원 등록하기</a>");
+		out.print("<table>");
 		out.print("<tr>\r\n"
 				+ "		<th>Idx</th>\r\n"
 				+ "		<th>아이디</th>\r\n"
@@ -146,11 +156,10 @@ public class MemberServlet extends HttpServlet {
 					+"<td>"+joinDate+"</td>\r\n"
 					+"<td>"+delYN+"</td>\r\n"
 					+ "			<td><img class=\"imgbtn infobtn modbtn\" src=\"./repo/modify-icon.svg\" onclick=\"adminmodify(this)\">\r\n"
-					+ "			<img class=\"imgbtn infobtn delbtn\" src=\"./repo/red-x-line-icon.svg\" onclick=\"admindel(this);\"></td>\r\n"
-					+ "		</tr>");
+					+ "			<img class=\"imgbtn infobtn delbtn\" src=\"./repo/red-x-line-icon.svg\" onclick=\"location.href='/ADMIN_JavaServlet/member?command=delMember&userID=" + userID +"'\">\r\n"
+					+ "</td></tr>");
 		}
-		out.print("</table><br><a href=\"/ADMIN_JavaServlet/register.html\">새 회원 등록하기</a>"
-				+ "</body></html>");
+		out.print("</table></div></body></html>");
 		//결과 표시부 끝
 		
 	}
